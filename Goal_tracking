@@ -1,0 +1,14 @@
+# Go to your downloads folder (or wherever you saved the zip)
+cd ~/Downloads
+
+# Unzip the bundle
+unzip cdc-goal-tracking-calendar.zip
+cd cdc_goal_tracking_calendar
+
+# Initialize git and push to your repo
+git init
+git remote add origin https://github.com/wallyserviceleads/goal-tracking-calendar.git
+git add .
+git commit -m "Initial commit - Goal Tracking Calendar MVP"
+git branch -M main
+git push -u origin main
