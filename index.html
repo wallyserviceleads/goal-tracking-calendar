@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Goal Tracking Calendar • Columbia Dent Company</title>
+  <link rel="stylesheet" href="style.css"/>
+  <script defer src="config.js"></script>
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <img src="assets/logo.svg" alt="Columbia Dent Company" class="logo"/>
+      <h1>Goal Tracking Calendar</h1>
+    </div>
+    <div class="controls">
+      <div class="control">
+        <label for="yearlyGoal">Yearly Goal ($)</label>
+        <input type="number" id="yearlyGoal" min="0" step="100" placeholder="500000">
+      </div>
+      <div class="control">
+        <label class="switch">
+          <input type="checkbox" id="toggleSaturday" checked>
+          <span class="slider"></span>
+        </label>
+        <span class="switch-label">Include Saturday</span>
+      </div>
+      <div class="control">
+        <label class="switch">
+          <input type="checkbox" id="toggleWorkingPace" checked>
+          <span class="slider"></span>
+        </label>
+        <span class="switch-label">Pace by Working Days</span>
+      </div>
+      <div class="control">
+        <button id="fullscreenBtn" title="Fullscreen display">Fullscreen</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="kpis">
+    <div class="kpi"><div class="kpi-label">Daily Target</div><div id="kpiDaily" class="kpi-value">—</div></div>
+    <div class="kpi"><div class="kpi-label">Weekly Target</div><div id="kpiWeekly" class="kpi-value">—</div></div>
+    <div class="kpi"><div class="kpi-label">Monthly Target</div><div id="kpiMonthly" class="kpi-value">—</div></div>
+    <div class="kpi"><div class="kpi-label">Quarterly Target</div><div id="kpiQuarterly" class="kpi-value">—</div></div>
+    <div class="kpi"><div class="kpi-label">YTD Booked</div><div id="kpiYTD" class="kpi-value">—</div></div>
+  </section>
+
+  <section class="nav">
+    <button id="prevMonth">◀</button>
+    <h2 id="monthLabel">Month YYYY</h2>
+    <button id="nextMonth">▶</button>
+  </section>
+
+  <section class="calendar">
+    <div class="calendar-grid" id="calendarGrid"></div>
+  </section>
+
+  <footer class="legend">
+    <div><span class="pill booked"></span> Scheduled $</div>
+    <div><span class="pill cancelled"></span> Cancelled</div>
+    <div><span class="pill goal"></span> Goal pace</div>
+    <div class="right">Data: Google Sheet → CSV • Refreshes on load</div>
+  </footer>
+</body>
+</html>
