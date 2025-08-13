@@ -1,21 +1,21 @@
 /* Calendar Logic */
 (async function(){
   const cfg = window.APP_CONFIG;
-  const $ = (sel)=>document.querySelector(sel);
+  const $  = (sel)=>document.querySelector(sel);
   const $$ = (sel)=>Array.from(document.querySelectorAll(sel));
 
-  const yearInput = $("#yearlyGoal");
+  const yearInput      = $("#yearlyGoal");
   const saturdayToggle = $("#toggleSaturday");
-  const paceToggle = $("#toggleWorkingPace");
-  const fsBtn = $("#fullscreenBtn");
+  const paceToggle     = $("#toggleWorkingPace");
+  const fsBtn          = $("#fullscreenBtn");
 
-  const monthLabel = $("#monthLabel");
-  const grid = $("#calendarGrid");
-  const kpiDaily = $("#kpiDaily");
-  const kpiWeekly = $("#kpiWeekly");
-  const kpiMonthly = $("#kpiMonthly");
-  const kpiQuarterly = $("#kpiQuarterly");
-  const kpiYTD = $("#kpiYTD");
+  const monthLabel  = $("#monthLabel");
+  const grid        = $("#calendarGrid");
+  const kpiDaily    = $("#kpiDaily");
+  const kpiWeekly   = $("#kpiWeekly");
+  const kpiMonthly  = $("#kpiMonthly");
+  const kpiQuarterly= $("#kpiQuarterly");
+  const kpiYTD      = $("#kpiYTD");
 
   const prevBtn = $("#prevMonth");
   const nextBtn = $("#nextMonth");
@@ -26,9 +26,9 @@
   let rows = []; // parsed CSV rows
 
   // Init UI defaults
-  yearInput.value = cfg.DEFAULT_YEARLY_GOAL;
+  yearInput.value        = cfg.DEFAULT_YEARLY_GOAL;
   saturdayToggle.checked = cfg.DEFAULT_INCLUDE_SATURDAY;
-  paceToggle.checked = cfg.DEFAULT_WORKING_PACE;
+  paceToggle.checked     = cfg.DEFAULT_WORKING_PACE;
 
   // Events
   prevBtn.addEventListener("click", ()=>{ current.setMonth(current.getMonth()-1); render(); });
@@ -41,40 +41,37 @@
 
   // Fetch CSV
   async function getCSV(){
-    const url = cfg.SHEET_CSV_URL && cfg.SHEET_CSV_URL.length ? cfg.SHEET_CSV_URL : cfg.FALLBACK_CSV;
+    const url = (cfg.SHEET_CSV_URL && cfg.SHEET_CSV_URL.length) ? cfg.SHEET_CSV_URL : cfg.FALLBACK_CSV;
     const resp = await fetch(url, {cache:"no-store"});
     if(!resp.ok) throw new Error("Failed to load CSV");
-    const text = await resp.text();
-    return text;
+    return await resp.text();
   }
 
   function parseCSV(text){
-    // simple CSV parser for our expected headers
     const lines = text.split(/\r?\n/).filter(x=>x.trim().length);
     if(lines.length===0) return [];
     const headers = lines[0].split(",").map(h=>h.trim());
     const out = [];
     for(let i=1;i<lines.length;i++){
-      const cols = lines[i].split(","); // naive; users should avoid commas in fields
+      const cols = lines[i].split(","); // naive; avoid commas in fields
       const obj = {};
       headers.forEach((h,idx)=>obj[h]= (cols[idx]||"").trim());
-      if(obj["Date"]){
-        out.push(obj);
-      }
+      if(obj["Date"]) out.push(obj);
     }
     return out;
   }
 
   function money(n){
-    if(!isFinite(n)) return "—";
-    return n.toLocaleString(undefined,{style:"currency", currency:"USD", maximumFractionDigits:0});
+    const num = Number(n);
+    if(!isFinite(num)) return "—";
+    return num.toLocaleString(undefined,{style:"currency", currency:"USD", maximumFractionDigits:0});
   }
 
   function getWorkingDaysInMonth(dt, includeSat){
     const y=dt.getFullYear(), m=dt.getMonth();
-    const daysInMonth = new Date(y, m+1, 0).getDate();
+    const days = new Date(y, m+1, 0).getDate();
     let count=0;
-    for(let d=1; d<=daysInMonth; d++){
+    for(let d=1; d<=days; d++){
       const day = new Date(y,m,d).getDay(); // 0 Sun..6 Sat
       const isWeekend = includeSat ? (day===0) : (day===0 || day===6);
       if(!isWeekend) count++;
@@ -82,26 +79,7 @@
     return count;
   }
 
-  function getWeeks(date){
-    // returns array of {start,end} for calendar weeks covering the month
-    const y=date.getFullYear(), m=date.getMonth();
-    const first = new Date(y,m,1);
-    const last = new Date(y,m+1,0);
-    const start = new Date(first);
-    start.setDate(first.getDate() - ((first.getDay()+6)%7)); // Monday-based weeks look nice; use Sunday? adjust as needed
-    const weeks = [];
-    let cur = new Date(start);
-    while(cur <= last || cur.getDay()!==1){
-      const wstart = new Date(cur);
-      const wend = new Date(cur); wend.setDate(wend.getDate()+6);
-      weeks.push({start:wstart, end:wend});
-      cur.setDate(cur.getDate()+7);
-      if(cur>last && cur.getDay()===1) break;
-    }
-    return weeks;
-  }
-
-  function startOfDay(dt){ const d=new Date(dt); d.setHours(0,0,0,0); return d; }
+  function keyFor(y,m,d){ return `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`; }
 
   function render(){
     // Month label
@@ -118,19 +96,15 @@
     // Build day map
     const daysInMonth = new Date(y,m+1,0).getDate();
     const dayMap = new Map(); // 'YYYY-MM-DD' -> { items:[], total: number }
-    function keyFor(y,m,d){ return `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`; }
-
     for(let d=1; d<=daysInMonth; d++){
-      const key = keyFor(y,m,d);
-      dayMap.set(key, {items:[], total:0});
+      dayMap.set(keyFor(y,m,d), {items:[], total:0});
     }
 
     let ytd = 0;
     const now = new Date();
-    // compute YTD
     rows.forEach(r=>{
       const d = new Date(r["Date"]);
-      if (d.getFullYear()===y && r["Status"]?.toLowerCase()!=="cancelled"){
+      if (d.getFullYear()===y && (r["Status"]||"").toLowerCase()!=="cancelled"){
         if (d <= now) ytd += Number(r["Amount"]||0) || 0;
       }
     });
@@ -152,29 +126,27 @@
     });
 
     // Compute targets
-    const yearlyGoal = Number(yearInput.value||0) || 0;
-    const includeSat = saturdayToggle.checked;
-    const paceByWorking = paceToggle.checked;
+    const yearlyGoal     = Number(yearInput.value||0) || 0;
+    const includeSat     = !!saturdayToggle.checked;
+    const paceByWorking  = !!paceToggle.checked;
 
-    // Monthly days / working days
-    const workingDays = getWorkingDaysInMonth(current, includeSat);
-    const weeks = getWeeks(current);
-
-    const monthlyTarget = yearlyGoal/12;
-    const weeklyTarget = yearlyGoal/52;
-    const dailyTarget = paceByWorking
+    const workingDays    = getWorkingDaysInMonth(current, includeSat);
+    const monthlyTarget  = yearlyGoal/12;
+    const weeklyTarget   = yearlyGoal/52;
+    const dailyTarget    = paceByWorking
       ? (monthlyTarget / Math.max(1, workingDays))
       : (yearlyGoal/365);
 
     // Update KPI
-    kpiDaily.textContent = money(dailyTarget);
-    kpiWeekly.textContent = money(weeklyTarget);
-    kpiMonthly.textContent = money(monthlyTarget);
+    kpiDaily.textContent     = money(dailyTarget);
+    kpiWeekly.textContent    = money(weeklyTarget);
+    kpiMonthly.textContent   = money(monthlyTarget);
     kpiQuarterly.textContent = money(yearlyGoal/4);
-    kpiYTD.textContent = money(ytd);
+    kpiYTD.textContent       = money(ytd);
 
     // Render grid
     grid.innerHTML = "";
+
     // Weekday headers (Sun..Sat)
     const headers = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
     headers.forEach(h=>{
@@ -195,6 +167,7 @@
 
     // Days
     let weekAccumulator = 0, dayCountThisWeek = 0;
+
     for(let d=1; d<=daysInMonth; d++){
       const date = new Date(y,m,d);
       const key = keyFor(y,m,d);
@@ -209,41 +182,42 @@
       const paceHTML = isFinite(goalPace) ? `<span class="pace"><span class="pill goal"></span>${money(goalPace)}</span>` : "";
       el.innerHTML = `<div class="date"><span>${d}</span>${paceHTML}</div>`;
 
+      // exclude Sundays, and exclude Saturdays unless includeSat is true
       const isExcluded = (weekday === 0) || (weekday === 6 && !includeSat);
+
+      // items & totals only on non-excluded days
       if (!isExcluded) {
-      const itemsWrap = document.createElement("div");
-      itemsWrap.className = "items";
+        const itemsWrap = document.createElement("div");
+        itemsWrap.className = "items";
 
-      data.items.sort((a,b)=>b.amount-a.amount).forEach(it=>{
-        const item = document.createElement("div");
-        item.className = "item" + (it.cancelled ? " cancelled" : "");
-        const svc = it.service || "Repair";
-        item.innerHTML = `<span>${svc}</span><span class="amount">${money(it.amount)}</span>`;
-        itemsWrap.appendChild(item);
-      });
+        data.items
+          .slice()
+          .sort((a,b)=>b.amount-a.amount)
+          .forEach(it=>{
+            const item = document.createElement("div");
+            item.className = "item" + (it.cancelled ? " cancelled" : "");
+            const svc = it.service || "Repair";
+            item.innerHTML = `<span>${svc}</span><span class="amount">${money(it.amount)}</span>`;
+            itemsWrap.appendChild(item);
+          });
 
-      el.appendChild(itemsWrap);
+        el.appendChild(itemsWrap);
 
-      const total = document.createElement("div");
-      total.className = "total";
-      total.innerHTML = `<span>Total</span><span>${money(data.total)}</span>`;
-      el.appendChild(total);
+        const total = document.createElement("div");
+        total.className = "total";
+        total.innerHTML = `<span>Total</span><span>${money(data.total)}</span>`;
+        el.appendChild(total);
 
-      
-  weekAccumulator += data.total;
-  dayCountThisWeek++;
-        }
+        // weekly accumulation
+        weekAccumulator += data.total;
+        dayCountThisWeek++;
+      }
 
-}
+      // append the day cell either way
       grid.appendChild(el);
 
-
-          
-
-      // weekly roll
-      
-    f (weekday === 6 || d === daysInMonth) {
-
+      // weekly roll (Saturday or last day of month)
+      if (weekday === 6 || d === daysInMonth) {
         const weekRow = document.createElement("div");
         weekRow.className = "week-row";
         weekRow.innerHTML = `<div>Week subtotal</div><div>${money(weekAccumulator)}</div>`;
