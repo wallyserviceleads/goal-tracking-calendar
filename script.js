@@ -209,6 +209,8 @@
       const paceHTML = isFinite(goalPace) ? `<span class="pace"><span class="pill goal"></span>${money(goalPace)}</span>` : "";
       el.innerHTML = `<div class="date"><span>${d}</span>${paceHTML}</div>`;
 
+      const isExcluded = (weekday === 0) || (weekday === 6 && !includeSat);
+      if (!isExcluded) {
       const itemsWrap = document.createElement("div");
       itemsWrap.className = "items";
 
@@ -227,12 +229,21 @@
       total.innerHTML = `<span>Total</span><span>${money(data.total)}</span>`;
       el.appendChild(total);
 
+      
+  weekAccumulator += data.total;
+  dayCountThisWeek++;
+        }
+
+}
       grid.appendChild(el);
 
+
+          
+
       // weekly roll
-      weekAccumulator += data.total;
-      dayCountThisWeek++;
-      if(date.getDay()===6 || d===daysInMonth){ // Saturday or end of month
+      
+    f (weekday === 6 || d === daysInMonth) {
+
         const weekRow = document.createElement("div");
         weekRow.className = "week-row";
         weekRow.innerHTML = `<div>Week subtotal</div><div>${money(weekAccumulator)}</div>`;
