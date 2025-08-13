@@ -126,23 +126,25 @@
     });
 
     // Compute targets
-    const yearlyGoal     = Number(yearInput.value||0) || 0;
-    const includeSat     = !!saturdayToggle.checked;
-    const paceByWorking  = !!paceToggle.checked;
+const yearlyGoal = Number(yearInput.value || 0) || 0;
+const includeSat = !!saturdayToggle.checked;
 
-    const workingDays    = getWorkingDaysInMonth(current, includeSat);
-    const monthlyTarget  = yearlyGoal/12;
-    const weeklyTarget   = yearlyGoal/52;
-    const dailyTarget    = paceByWorking
-      ? (monthlyTarget / Math.max(1, workingDays))
-      : (yearlyGoal/365);
+// Working days in this month (Sun excluded; Sat optional)
+const workingDays = getWorkingDaysInMonth(current, includeSat);
 
-    // Update KPI
-    kpiDaily.textContent     = money(dailyTarget);
-    kpiWeekly.textContent    = money(weeklyTarget);
-    kpiMonthly.textContent   = money(monthlyTarget);
-    kpiQuarterly.textContent = money(yearlyGoal/4);
-    kpiYTD.textContent       = money(ytd);
+// Targets
+const monthlyTarget  = yearlyGoal / 12;
+const dailyTarget    = workingDays > 0 ? (monthlyTarget / workingDays) : 0;
+const weeklyWorkdays = includeSat ? 6 : 5;
+const weeklyTarget   = dailyTarget * weeklyWorkdays;
+
+// Update KPI
+kpiDaily.textContent      = money(dailyTarget);
+kpiWeekly.textContent     = money(weeklyTarget);
+kpiMonthly.textContent    = money(monthlyTarget);
+kpiQuarterly.textContent  = money(yearlyGoal / 4);
+kpiYTD.textContent        = money(ytd);
+
 
     // Render grid
     grid.innerHTML = "";
