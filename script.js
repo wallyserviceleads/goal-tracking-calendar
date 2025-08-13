@@ -178,58 +178,53 @@ kpiYTD.textContent        = money(ytd);
       const el = document.createElement("div");
       el.className = "day";
 
-      // day header
-      const weekday    = date.getDay(); // 0 Sun..6 Sat
+     // day header
+const weekday    = date.getDay(); // 0 Sun..6 Sat
 const isExcluded = (weekday === 0) || (weekday === 6 && !includeSat);
-const paceHTML   = (!isExcluded && isFinite(dailyTarget))
+
+const paceHTML = (!isExcluded && isFinite(dailyTarget))
   ? `<span class="pace"><span class="pill goal"></span>${money(dailyTarget)}</span>`
   : "";
+
 el.innerHTML = `<div class="date"><span>${d}</span>${paceHTML}</div>`;
 
+// items & totals only on non-excluded days
+if (!isExcluded) {
+  const itemsWrap = document.createElement("div");
+  itemsWrap.className = "items";
 
-      // exclude Sundays, and exclude Saturdays unless includeSat is true
-      const isExcluded = (weekday === 0) || (weekday === 6 && !includeSat);
+  data.items.slice().sort((a,b)=>b.amount-a.amount).forEach(it=>{
+    const item = document.createElement("div");
+    item.className = "item" + (it.cancelled ? " cancelled" : "");
+    const svc = it.service || "Repair";
+    item.innerHTML = `<span>${svc}</span><span class="amount">${money(it.amount)}</span>`;
+    itemsWrap.appendChild(item);
+  });
 
-      // items & totals only on non-excluded days
-      if (!isExcluded) {
-        const itemsWrap = document.createElement("div");
-        itemsWrap.className = "items";
+  el.appendChild(itemsWrap);
 
-        data.items
-          .slice()
-          .sort((a,b)=>b.amount-a.amount)
-          .forEach(it=>{
-            const item = document.createElement("div");
-            item.className = "item" + (it.cancelled ? " cancelled" : "");
-            const svc = it.service || "Repair";
-            item.innerHTML = `<span>${svc}</span><span class="amount">${money(it.amount)}</span>`;
-            itemsWrap.appendChild(item);
-          });
+  const total = document.createElement("div");
+  total.className = "total";
+  total.innerHTML = `<span>Total</span><span>${money(data.total)}</span>`;
+  el.appendChild(total);
 
-        el.appendChild(itemsWrap);
+  // weekly accumulation
+  weekAccumulator += data.total;
+  dayCountThisWeek++;
+}
 
-        const total = document.createElement("div");
-        total.className = "total";
-        total.innerHTML = `<span>Total</span><span>${money(data.total)}</span>`;
-        el.appendChild(total);
+// append the day cell either way
+grid.appendChild(el);
 
-        // weekly accumulation
-        weekAccumulator += data.total;
-        dayCountThisWeek++;
-      }
-
-      // append the day cell either way
-      grid.appendChild(el);
-
-      // weekly roll (Saturday or last day of month)
-      if (weekday === 6 || d === daysInMonth) {
-        const weekRow = document.createElement("div");
-        weekRow.className = "week-row";
-        weekRow.innerHTML = `<div>Week subtotal</div><div>${money(weekAccumulator)}</div>`;
-        grid.appendChild(weekRow);
-        weekAccumulator = 0;
-        dayCountThisWeek = 0;
-      }
+// weekly roll (Saturday or last day of month)
+if (weekday === 6 || d === daysInMonth) {
+  const weekRow = document.createElement("div");
+  weekRow.className = "week-row";
+  weekRow.innerHTML = `<div>Week subtotal</div><div>${money(weekAccumulator)}</div>`;
+  grid.appendChild(weekRow);
+  weekAccumulator = 0;
+  dayCountThisWeek = 0;
+}
     }
   }
 
