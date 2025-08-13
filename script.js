@@ -179,10 +179,13 @@ kpiYTD.textContent        = money(ytd);
       el.className = "day";
 
       // day header
-      const weekday = date.getDay();
-      const goalPace = dailyTarget;
-      const paceHTML = isFinite(goalPace) ? `<span class="pace"><span class="pill goal"></span>${money(goalPace)}</span>` : "";
-      el.innerHTML = `<div class="date"><span>${d}</span>${paceHTML}</div>`;
+      const weekday    = date.getDay(); // 0 Sun..6 Sat
+const isExcluded = (weekday === 0) || (weekday === 6 && !includeSat);
+const paceHTML   = (!isExcluded && isFinite(dailyTarget))
+  ? `<span class="pace"><span class="pill goal"></span>${money(dailyTarget)}</span>`
+  : "";
+el.innerHTML = `<div class="date"><span>${d}</span>${paceHTML}</div>`;
+
 
       // exclude Sundays, and exclude Saturdays unless includeSat is true
       const isExcluded = (weekday === 0) || (weekday === 6 && !includeSat);
