@@ -179,13 +179,14 @@ kpiYTD.textContent        = money(ytd);
       el.className = "day";
 
  // day header
-+ const weekday = date.getDay();
-+ const includeSat = !!(saturdayToggle && saturdayToggle.checked);
-+ const isExcluded = (weekday === 0) || (weekday === 6 && !includeSat);
-+ const goalPace = dailyTarget; // or however you compute your per‑day target
-+ const paceHTML = (!isExcluded && isFinite(goalPace))
-+   ? `<span class="pace"><span class="pill goal"></span>${money(goalPace)}</span>`
-+   : "";
+ const weekday = date.getDay();
+ const includeSat = !!(saturdayToggle && saturdayToggle.checked);
+ const isExcluded = (weekday === 0) || (weekday === 6 && !includeSat);
+ const goalPace = dailyTarget; // or however you compute your per‑day target
+ const paceHTML = (!isExcluded && isFinite(goalPace))
+   ? `<span class="pace"><span class="pill goal"></span>${money(goalPace)}</span>`
+   : "";
+      
 // items & totals only on non-excluded days
 if (!isExcluded) {
   const itemsWrap = document.createElement("div");
